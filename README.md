@@ -1,8 +1,6 @@
 
 ### Technology Stack
 
-This scaffold provides a robust foundation built with:
-
 ### Core Framework
 - **⚡ Next.js 15** - The React framework for production with App Router
 - **📘 TypeScript 5** - Type-safe JavaScript for better developer experience
