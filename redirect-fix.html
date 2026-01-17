@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirect Loop Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .step {
+            background: #e3f2fd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #2196f3;
+        }
+        .code {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+        .button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .button:hover {
+            background: #45a049;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Redirect Loop Fix for FundRaise Platform</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Important:</strong> Follow these steps exactly to fix the redirect loop issue.
+        </div>
+
+        <h2>📋 Step-by-Step Solution:</h2>
+
+        <div class="step">
+            <h3>Step 1: Clear Browser Storage</h3>
+            <p>Open your browser console (F12) and run these commands:</p>
+            <div class="code">
+                sessionStorage.clear()<br>
+                localStorage.clear()<br>
+                location.reload()
+            </div>
+            <button class="button" onclick="clearStorage()">Clear Storage & Reload</button>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Login with Non-Profit Account</h3>
+            <p>Use these exact credentials:</p>
+            <div class="code">
+                Email: nonprofit@example.com<br>
+                Password: password123
+            </div>
+            <button class="button" onclick="goToLogin()">Go to Login</button>
+        </div>
+
+        <div class="step">
+            <h3>Step 3: Use Simple Create Page</h3>
+            <p>If the regular create page still has redirect issues, use this simplified version:</p>
+            <button class="button" onclick="goToSimpleCreate()">Open Simple Create Page</button>
+        </div>
+
+        <div class="step">
+            <h3>Step 4: Alternative - Direct API Test</h3>
+            <p>If all else fails, you can test campaign creation directly:</p>
+            <button class="button" onclick="testDirectAPI()">Test Direct API</button>
+        </div>
+
+        <h2>🔍 Debug Information:</h2>
+        <div id="debug-info">
+            <p>Current URL: <span id="current-url"></span></p>
+            <p>User Agent: <span id="user-agent"></span></p>
+            <p>Storage Status: <span id="storage-status"></span></p>
+        </div>
+
+        <h2>🚀 Quick Access Links:</h2>
+        <div>
+            <button class="button" onclick="window.open('/', '_blank')">Home Page</button>
+            <button class="button" onclick="window.open('/campaigns', '_blank')">Campaigns</button>
+            <button class="button" onclick="window.open('/dashboard', '_blank')">Dashboard</button>
+            <button class="button" onclick="window.open('/simple-create', '_blank')">Simple Create</button>
+        </div>
+    </div>
+
+    <script>
+        // Display debug information
+        document.getElementById('current-url').textContent = window.location.href;
+        document.getElementById('user-agent').textContent = navigator.userAgent;
+        
+        // Check storage
+        try {
+            sessionStorage.setItem('test', 'test');
+            sessionStorage.removeItem('test');
+            localStorage.setItem('test', 'test');
+            localStorage.removeItem('test');
+            document.getElementById('storage-status').textContent = '✅ Working';
+        } catch (e) {
+            document.getElementById('storage-status').textContent = '❌ Error: ' + e.message;
+        }
+
+        // Helper functions
+        function clearStorage() {
+            sessionStorage.clear();
+            localStorage.clear();
+            alert('Storage cleared! Reloading...');
+            location.reload();
+        }
+
+        function goToLogin() {
+            window.open('/auth/login', '_blank');
+        }
+
+        function goToSimpleCreate() {
+            window.open('/simple-create', '_blank');
+        }
+
+        function testDirectAPI() {
+            const testData = {
+                title: 'Test Campaign ' + new Date().getTime(),
+                description: 'This is a test campaign created via direct API',
+                goalAmount: 1000,
+                deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                imageUrl: 'https://images.unsplash.com/photo-1548191977-7d76d99aa0c2?w=800&h=600&fit=crop&auto=format&q=80'
+            };
+
+            // First get auth token
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Please login first!');
+                return;
+            }
+
+            fetch('/api/campaigns', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(testData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert('Error: ' + data.error);
+                } else {
+                    alert('✅ Campaign created successfully! Check your dashboard.');
+                }
+            })
+            .catch(error => {
+                alert('Network error: ' + error.message);
+            });
+        }
+
+        // Auto-redirect prevention
+        let redirectCount = parseInt(sessionStorage.getItem('redirectCount') || '0');
+        if (redirectCount > 3) {
+            sessionStorage.removeItem('redirectCount');
+            console.warn('Redirect loop detected and prevented');
+        }
+    </script>
+</body>
+</html>
